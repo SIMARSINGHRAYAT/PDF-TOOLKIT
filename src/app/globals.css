@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #000;
+  color: #fff;
+}
+
+body {
+  @apply antialiased text-base;
+}
+
+* {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+}
+
+input,
+select,
+button,
+textarea {
+  @apply rounded-xl border border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-500;
+}
+
+button {
+  @apply transition duration-200;
+}

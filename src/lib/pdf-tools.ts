@@ -1,0 +1,93 @@
+import { PDFDocument } from "pdf-lib";
+import { parsePageRange } from "@/lib/file-utils";
+
+export type SplitMode = "every" | "ranges" | "selected";
+
+export async function mergePdfs(buffers: ArrayBuffer[]): Promise<Uint8Array> {
+  const merged = await PDFDocument.create();
+
+  for (const buffer of buffers) {
+    const source = await PDFDocument.load(buffer);
+    const pages = await merged.copyPages(source, source.getPageIndices());
+    pages.forEach((page) => merged.addPage(page));
+  }
+
+  return await merged.save();
+}
+
+export async function splitPdf(
+  buffer: ArrayBuffer,
+  mode: SplitMode,
+  pageInput: string,
+): Promise<Array<{ filename: string; bytes: Uint8Array }>> {
+  const source = await PDFDocument.load(buffer);
+  const pageCount = source.getPageCount();
+
+  if (mode === "every") {
+    const output: Array<{ filename: string; bytes: Uint8Array }> = [];
+    for (let i = 0; i < pageCount; i += 1) {
+      const doc = await PDFDocument.create();
+      const [page] = await doc.copyPages(source, [i]);
+      doc.addPage(page);
+      output.push({ filename: `page-${i + 1}.pdf`, bytes: await doc.save() });
+    }
+    return output;
+  }
+
+  if (mode === "selected") {
+    const selected = parsePageRange(pageInput, pageCount);
+    if (selected.length === 0) throw new Error("No valid selected pages.");
+    const doc = await PDFDocument.create();
+    const pages = await doc.copyPages(
+      source,
+      selected.map((p) => p - 1),
+    );
+    pages.forEach((page) => doc.addPage(page));
+    return [{ filename: "selected-pages.pdf", bytes: await doc.save() }];
+  }
+
+  const tokens = pageInput
+    .split(",")
+    .map((token) => token.trim())
+    .filter(Boolean);
+
+  const output: Array<{ filename: string; bytes: Uint8Array }> = [];
+
+  for (const token of tokens) {
+    const pagesForToken = parsePageRange(token, pageCount);
+    if (pagesForToken.length === 0) continue;
+
+    const doc = await PDFDocument.create();
+    const pages = await doc.copyPages(
+      source,
+      pagesForToken.map((p) => p - 1),
+    );
+    pages.forEach((page) => doc.addPage(page));
+
+    const name =
+      pagesForToken.length === 1
+        ? `${pagesForToken[0]}`
+        : `${pagesForToken[0]}-${pagesForToken[pagesForToken.length - 1]}`;
+
+    output.push({ filename: `pages-${name}.pdf`, bytes: await doc.save() });
+  }
+
+  if (output.length === 0) throw new Error("No valid ranges selected.");
+  return output;
+}
+
+export async function cropPdf(
+  buffer: ArrayBuffer,
+  crop: { x: number; y: number; width: number; height: number },
+  pages: number[],
+): Promise<Uint8Array> {
+  const pdf = await PDFDocument.load(buffer);
+  const targets = pages.length > 0 ? pages : pdf.getPageIndices().map((i) => i + 1);
+
+  for (const pageNumber of targets) {
+    const page = pdf.getPage(pageNumber - 1);
+    page.setCropBox(crop.x, crop.y, crop.width, crop.height);
+  }
+
+  return await pdf.save();
+}
