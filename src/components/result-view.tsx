@@ -12,17 +12,15 @@ type ResultViewProps = {
 
 export function ResultView({ id }: ResultViewProps) {
   const router = useRouter();
-  const [filename, setFilename] = useState("merged-document.pdf");
   const result = useMemo(() => getPdfResult(id), [id]);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [filename, setFilename] = useState<string | null>(null);
+  const previewUrl = useMemo(() => (result ? URL.createObjectURL(result.blob) : null), [result]);
 
   useEffect(() => {
-    if (!result) return;
-    setFilename(result.defaultFilename);
-    const url = URL.createObjectURL(result.blob);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [result]);
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   if (!result) {
     return (
@@ -60,14 +58,14 @@ export function ResultView({ id }: ResultViewProps) {
         <label htmlFor="filename" className="text-sm text-zinc-300">File Name</label>
         <input
           id="filename"
-          value={filename}
+          value={filename ?? result.defaultFilename}
           onChange={(event) => setFilename(event.target.value)}
           className="mt-2 w-full px-3 py-2 text-base"
           placeholder="merged-document.pdf"
         />
         <button
           type="button"
-          onClick={() => triggerDownload(result.blob, normalizePdfFilename(filename, result.defaultFilename))}
+          onClick={() => triggerDownload(result.blob, normalizePdfFilename(filename ?? result.defaultFilename, result.defaultFilename))}
           className="mt-4 rounded-xl border border-zinc-400 bg-zinc-900 px-5 py-3 text-base font-semibold text-white hover:bg-zinc-800"
         >
           Download PDF
