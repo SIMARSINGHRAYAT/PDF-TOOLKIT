@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { normalizePdfFilename, triggerDownload } from "@/lib/file-utils";
+import { normalizePdfFilename, saveBlob } from "@/lib/file-utils";
 import { getPdfResult } from "@/lib/result-store";
+import { getPdfPageCount } from "@/lib/pdf-render";
+import { PdfPagePreview } from "@/components/pdf-page-preview";
 
 type ResultViewProps = {
   id: string;
@@ -14,13 +16,24 @@ export function ResultView({ id }: ResultViewProps) {
   const router = useRouter();
   const result = useMemo(() => getPdfResult(id), [id]);
   const [filename, setFilename] = useState<string | null>(null);
-  const previewUrl = useMemo(() => (result ? URL.createObjectURL(result.blob) : null), [result]);
+  const [previewData, setPreviewData] = useState<ArrayBuffer | null>(null);
+  const [pageCount, setPageCount] = useState(0);
+  const [previewPage, setPreviewPage] = useState(1);
 
   useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
+    let active = true;
+    if (!result) return () => { active = false; };
+    void result.blob.arrayBuffer().then(async (data) => {
+      const count = await getPdfPageCount(data);
+      if (!active) return;
+      setPreviewData(data);
+      setPageCount(count);
+      setPreviewPage(1);
+    }).catch(() => {
+      if (active) setPreviewData(null);
+    });
+    return () => { active = false; };
+  }, [result]);
 
   if (!result) {
     return (
@@ -45,16 +58,9 @@ export function ResultView({ id }: ResultViewProps) {
         <p className="mt-2 text-lg text-zinc-300">{result.successMessage}</p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-700 bg-zinc-950 p-4">
-        <p className="mb-3 text-sm text-zinc-400">PDF Preview</p>
-        {previewUrl ? (
-          <iframe title="Generated PDF preview" src={previewUrl} className="h-[65vh] min-h-[420px] w-full rounded-xl border border-zinc-700" />
-        ) : (
-          <p className="text-sm text-zinc-400">Loading PDF preview...</p>
-        )}
-      </div>
+      {previewData ? <PdfPagePreview data={previewData} pageCount={pageCount} page={previewPage} onPageChange={setPreviewPage} label="Generated PDF preview" /> : <p className="text-sm text-zinc-400">Loading PDF preview...</p>}
 
-      <div className="rounded-2xl border border-zinc-700 bg-zinc-950 p-4">
+      <div className="rounded-2xl border border-white/20 bg-white/[0.04] p-4 backdrop-blur-sm">
         <label htmlFor="filename" className="text-sm text-zinc-300">File Name</label>
         <input
           id="filename"
@@ -65,7 +71,7 @@ export function ResultView({ id }: ResultViewProps) {
         />
         <button
           type="button"
-          onClick={() => triggerDownload(result.blob, normalizePdfFilename(filename ?? result.defaultFilename, result.defaultFilename))}
+          onClick={() => void saveBlob(result.blob, normalizePdfFilename(filename ?? result.defaultFilename, result.defaultFilename))}
           className="mt-4 rounded-xl border border-zinc-400 bg-zinc-900 px-5 py-3 text-base font-semibold text-white hover:bg-zinc-800"
         >
           Download PDF

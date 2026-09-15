@@ -46,6 +46,31 @@ export function triggerDownload(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+export async function saveBlob(blob: Blob, filename: string): Promise<void> {
+  const picker = (window as Window & {
+    showSaveFilePicker?: (options?: { suggestedName?: string; types?: Array<{ accept: Record<string, string[]> }> }) => Promise<{
+      createWritable: () => Promise<{ write: (value: Blob) => Promise<void>; close: () => Promise<void> }>;
+    }>;
+  }).showSaveFilePicker;
+
+  if (!picker) {
+    triggerDownload(blob, filename);
+    return;
+  }
+
+  try {
+    const handle = await picker({
+      suggestedName: filename,
+      types: [{ accept: { "application/pdf": [".pdf"] } }],
+    });
+    const writable = await handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+  } catch (error) {
+    if ((error as DOMException).name !== "AbortError") throw error;
+  }
+}
+
 export function parsePageRange(input: string, maxPage: number): number[] {
   if (!input.trim()) return [];
   const pages = new Set<number>();

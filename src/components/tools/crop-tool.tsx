@@ -42,6 +42,7 @@ export function CropTool() {
   const [processing, setProcessing] = useState(false);
   const [done, setDone] = useState<string | null>(null);
   const [resultId, setResultId] = useState<string | null>(null);
+  const [cropMode, setCropMode] = useState(false);
 
   const dragRef = useRef<DragState | null>(null);
 
@@ -71,6 +72,7 @@ export function CropTool() {
     setError(null);
     setPreview(null);
     setRect(null);
+    setCropMode(false);
 
     if (!selected) return;
 
@@ -159,11 +161,11 @@ export function CropTool() {
         defaultFilename: withSuffix(file.name, "cropped", "pdf"),
         heading: "Cropped PDF Ready",
         sourcePath: "/crop-pdf",
-        successMessage: "PDF cropped successfully",
+        successMessage: "Crop PDF completed successfully.",
       });
 
       setResultId(id);
-      setDone("PDF cropped successfully");
+      setDone("Crop PDF completed successfully.");
       router.push(`/result/${id}`);
     } catch {
       setError("We couldn't crop this PDF. Please try again.");
@@ -182,7 +184,7 @@ export function CropTool() {
       <PdfUpload onSelect={(incoming) => void onFile(incoming[0] ?? null)} label="Upload a PDF to crop" />
 
       {file && pageCount > 0 ? (
-        <div className="rounded-2xl border border-zinc-700 bg-zinc-950 p-4 sm:p-5">
+        <div className="rounded-2xl border border-white/20 bg-white/[0.04] p-4 backdrop-blur-sm sm:p-5">
           <div className="flex items-center justify-between gap-3 text-sm text-zinc-300">
             <button
               type="button"
@@ -197,7 +199,7 @@ export function CropTool() {
               disabled={page <= 1 || previewLoading}
               className="px-3 py-1.5 disabled:opacity-40"
             >
-              ← Previous
+              Previous page
             </button>
             <span>Page {page} of {pageCount}</span>
             <button
@@ -213,11 +215,25 @@ export function CropTool() {
               disabled={page >= pageCount || previewLoading}
               className="px-3 py-1.5 disabled:opacity-40"
             >
-              Next →
+              Next page
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (rect) {
+                  void applyCrop();
+                } else {
+                  setCropMode(true);
+                }
+              }}
+              disabled={processing || previewLoading}
+              className="rounded-xl border border-white/50 bg-white/10 px-4 py-2 font-semibold text-white disabled:opacity-50"
+            >
+              {processing ? "Applying crop..." : rect ? "Apply Crop" : "Crop PDF"}
             </button>
           </div>
 
-          <p className="mt-3 text-xs text-zinc-400">Click and drag on the page to draw a crop area. Drag inside it to move. Drag the corner to resize.</p>
+          <p className="mt-3 text-xs text-zinc-400">Select Crop PDF, then drag across the page. Drag inside the black grid to move it, or drag the corner to resize it.</p>
 
           <div className="relative mt-4 w-full overflow-auto rounded-xl border border-zinc-700 bg-black p-3">
             {previewLoading ? <p className="p-8 text-sm text-zinc-400">Loading PDF preview...</p> : null}
@@ -230,6 +246,7 @@ export function CropTool() {
                   className="h-full w-full select-none"
                   draggable={false}
                   onMouseDown={(event) => {
+                    if (!cropMode) return;
                     if ((event.target as HTMLElement).closest("[data-crop-rect]")) return;
                     setResultId(null);
                     setDone(null);
@@ -284,20 +301,11 @@ export function CropTool() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={applyCrop}
-              disabled={processing || previewLoading}
-              className="rounded-xl border border-zinc-400 bg-zinc-900 px-5 py-3 text-base font-semibold text-white disabled:opacity-50"
-            >
-              {processing ? "Applying crop..." : "Crop PDF"}
-            </button>
-
             {resultId ? (
               <button
                 type="button"
                 onClick={() => router.push(`/result/${resultId}`)}
-                className="rounded-xl border border-zinc-500 bg-zinc-950 px-5 py-3 text-base font-semibold text-white hover:bg-zinc-900"
+                className="rounded-xl border border-white/30 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white hover:bg-white/10"
               >
                 Download Cropped PDF
               </button>

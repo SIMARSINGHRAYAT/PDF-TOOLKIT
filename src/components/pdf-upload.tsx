@@ -52,7 +52,7 @@ export function PdfUpload({ multiple = false, label = "Drop PDF files here", onS
         }}
         aria-label="Upload PDF files"
         className={`rounded-2xl border border-dashed px-6 py-12 text-center ${
-          dragging ? "border-zinc-200 bg-zinc-900" : "border-zinc-700 bg-zinc-950 hover:border-zinc-400"
+          dragging ? "border-zinc-200 bg-white/10" : "border-white/25 bg-white/[0.04] hover:border-zinc-400"
         }`}
       >
         <p className="text-lg font-semibold text-white">{label}</p>

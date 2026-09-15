@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { PdfUpload } from "@/components/pdf-upload";
-import { getPdfPageCount, renderPdfPageToDataUrl } from "@/lib/pdf-render";
+import { PdfPagePreview } from "@/components/pdf-page-preview";
+import { getPdfPageCount } from "@/lib/pdf-render";
 import JSZip from "jszip";
 import { splitPdf } from "@/lib/pdf-tools";
-import { formatBytes, triggerDownload, withSuffix } from "@/lib/file-utils";
+import { formatBytes, saveBlob, triggerDownload, withSuffix } from "@/lib/file-utils";
 
 function toPdfBlob(bytes: Uint8Array) {
   const copy = new Uint8Array(bytes.byteLength);
@@ -57,30 +58,30 @@ export function SplitTool() {
   const [ranges, setRanges] = useState("1-3, 4-7");
   const [splitAfter, setSplitAfter] = useState("3, 7");
   const [pageCount, setPageCount] = useState(0);
-  const [thumbs, setThumbs] = useState<string[]>([]);
+  const [previewData, setPreviewData] = useState<ArrayBuffer | null>(null);
+  const [previewPage, setPreviewPage] = useState(1);
   const [results, setResults] = useState<Array<{ filename: string; bytes: Uint8Array }>>([]);
+  const [selectedResult, setSelectedResult] = useState(0);
+  const [resultPageCount, setResultPageCount] = useState(0);
+  const [resultPage, setResultPage] = useState(1);
 
   const onFile = async (selected: File | null) => {
     setFile(selected);
     setResults([]);
+    setSelectedResult(0);
+    setResultPageCount(0);
     setError(null);
+    setPreviewData(null);
+    setPreviewPage(1);
     if (!selected) return;
 
     try {
       const buffer = await selected.arrayBuffer();
       const total = await getPdfPageCount(buffer);
       setPageCount(total);
-      const previews: string[] = [];
-      try {
-        for (let i = 1; i <= Math.min(total, 20); i += 1) {
-          previews.push(await renderPdfPageToDataUrl(buffer, i, 100));
-        }
-        setThumbs(previews);
-      } catch {
-        setThumbs([]);
-      }
+      setPreviewData(buffer);
     } catch {
-      setThumbs([]);
+      setPreviewData(null);
       setError("Unable to read this PDF. The file may be corrupted.");
     }
   };
@@ -104,6 +105,9 @@ export function SplitTool() {
 
       const output = await splitPdf(await file.arrayBuffer(), mode === "every" ? "every" : "ranges", input);
       setResults(output);
+      setSelectedResult(0);
+      setResultPage(1);
+      setResultPageCount(await getPdfPageCount(output[0].bytes.buffer as ArrayBuffer));
     } catch {
       setError("Invalid split configuration or unsupported PDF content.");
       setResults([]);
@@ -174,22 +178,17 @@ export function SplitTool() {
         </div>
       ) : null}
 
-      {thumbs.length > 0 ? (
-        <div>
-          <p className="mb-3 text-base text-zinc-300">PDF Page Preview</p>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-8">
-            {thumbs.map((src, idx) => (
-              <div key={idx} className="rounded-lg border border-zinc-700 bg-zinc-950 p-1">
-                <img src={src} alt={`Page ${idx + 1}`} className="w-full" />
-                <p className="mt-1 text-center text-[11px] text-zinc-500">{idx + 1}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      {previewData ? <PdfPagePreview data={previewData} pageCount={pageCount} page={previewPage} onPageChange={setPreviewPage} label="Source PDF preview" /> : null}
 
       {results.length > 0 ? (
-        <div className="rounded-2xl border border-zinc-700 bg-zinc-950 p-4 sm:p-5">
+        <div className="space-y-4 rounded-2xl border border-white/20 bg-white/[0.04] p-4 backdrop-blur-sm sm:p-5">
+          <PdfPagePreview
+            data={results[selectedResult].bytes.buffer as ArrayBuffer}
+            pageCount={resultPageCount}
+            page={resultPage}
+            onPageChange={setResultPage}
+            label={`Split output preview: ${results[selectedResult].filename}`}
+          />
           <div className="flex items-center justify-between">
             <p className="text-base text-zinc-200">Split Output Files</p>
             <button
@@ -207,9 +206,12 @@ export function SplitTool() {
                   <span className="text-sm text-zinc-300">{result.filename}</span>
                   <p className="text-xs text-zinc-500">{formatBytes(result.bytes.byteLength)}</p>
                 </div>
+                <button type="button" onClick={() => { setSelectedResult(idx); setResultPage(1); void getPdfPageCount(result.bytes.buffer as ArrayBuffer).then(setResultPageCount); }} className="px-3 py-2 text-sm">
+                  Preview
+                </button>
                 <button
                   type="button"
-                  onClick={() => triggerDownload(toPdfBlob(result.bytes), result.filename)}
+                  onClick={() => void saveBlob(toPdfBlob(result.bytes), result.filename)}
                   className="px-3 py-2 text-sm"
                 >
                   Download

@@ -4,18 +4,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PdfUpload } from "@/components/pdf-upload";
+import { PdfPagePreview } from "@/components/pdf-page-preview";
 import { formatBytes, withSuffix } from "@/lib/file-utils";
-import { getPdfPageCount, renderPdfPageToDataUrl } from "@/lib/pdf-render";
+import { getPdfPageCount } from "@/lib/pdf-render";
 import { mergePdfs } from "@/lib/pdf-tools";
 import { savePdfResult } from "@/lib/result-store";
 
 type MergeItem = {
   id: string;
   file: File;
-  thumbUrl: string | null;
+  previewData: ArrayBuffer | null;
+  previewPage: number;
   pageCount: number | null;
   status: "loading" | "ready" | "invalid";
-  previewError?: boolean;
 };
 
 function toPdfBlob(bytes: Uint8Array) {
@@ -44,7 +45,8 @@ export function MergeTool() {
     const incomingItems: MergeItem[] = incoming.map((file) => ({
       id: crypto.randomUUID(),
       file,
-      thumbUrl: null,
+      previewData: null,
+      previewPage: 1,
       pageCount: null,
       status: "loading",
     }));
@@ -57,25 +59,9 @@ export function MergeTool() {
         const pages = await getPdfPageCount(buffer);
 
         setItems((prev) =>
-          prev.map((item) => (item.id === entry.id ? { ...item, pageCount: pages, status: "ready" } : item)),
+          prev.map((item) => (item.id === entry.id ? { ...item, pageCount: pages, previewData: buffer, status: "ready" } : item)),
         );
 
-        let thumb: string | null = null;
-        let previewError = false;
-
-        try {
-          thumb = await renderPdfPageToDataUrl(buffer, 1, 120);
-        } catch {
-          previewError = true;
-        }
-
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === entry.id
-              ? { ...item, thumbUrl: thumb, previewError }
-              : item,
-          ),
-        );
       } catch {
         setItems((prev) => prev.map((item) => (item.id === entry.id ? { ...item, status: "invalid" } : item)));
       }
@@ -150,7 +136,7 @@ export function MergeTool() {
               if (draggingId) moveById(draggingId, item.id);
               setDraggingId(null);
             }}
-            className={`rounded-2xl border p-4 transition ${draggingId === item.id ? "border-zinc-300 bg-zinc-900" : "border-zinc-700 bg-zinc-950"}`}
+            className={`rounded-2xl border border-white/20 bg-white/[0.04] p-4 backdrop-blur-sm transition ${draggingId === item.id ? "border-zinc-300 bg-white/[0.1]" : ""}`}
           >
             <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wide text-zinc-400">
               <span>PDF {idx + 1}</span>
@@ -165,16 +151,18 @@ export function MergeTool() {
                 Drag
               </button>
             </div>
-            <div className="grid items-center gap-4 sm:grid-cols-[100px_1fr_auto]">
-              <div className="h-[130px] w-[96px] overflow-hidden rounded border border-zinc-700 bg-black">
-                {item.status === "ready" && item.thumbUrl ? (
-                  <img src={item.thumbUrl} alt={`${item.file.name} preview`} className="h-full w-full object-contain" />
-                ) : item.status === "loading" ? (
-                  <div className="grid h-full place-items-center text-xs text-zinc-500">Loading PDF preview...</div>
-                ) : (
-                  <div className="grid h-full place-items-center px-2 text-center text-xs text-red-400">Preview unavailable</div>
-                )}
-              </div>
+            <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_1fr_auto]">
+              {item.status === "ready" && item.previewData ? (
+                <PdfPagePreview
+                  data={item.previewData}
+                  pageCount={item.pageCount ?? 1}
+                  page={item.previewPage}
+                  onPageChange={(page) => setItems((prev) => prev.map((current) => current.id === item.id ? { ...current, previewPage: page } : current))}
+                  label={`${item.file.name} preview`}
+                />
+              ) : (
+                <div className="rounded-2xl border border-white/20 bg-white/[0.04] p-6 text-sm text-zinc-400">{item.status === "loading" ? "Reading PDF..." : "Preview unavailable"}</div>
+              )}
 
               <div>
                 <p className="text-base font-medium text-white break-all">{item.file.name}</p>
@@ -185,7 +173,6 @@ export function MergeTool() {
                       ? "Invalid PDF"
                       : "Reading pages..."} • {formatBytes(item.file.size)}
                 </p>
-                {item.previewError ? <p className="mt-1 text-xs text-zinc-500">Preview unavailable, but file is valid.</p> : null}
               </div>
 
               <div className="flex flex-col gap-2">
