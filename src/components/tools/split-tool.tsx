@@ -71,10 +71,14 @@ export function SplitTool() {
       const total = await getPdfPageCount(buffer);
       setPageCount(total);
       const previews: string[] = [];
-      for (let i = 1; i <= Math.min(total, 20); i += 1) {
-        previews.push(await renderPdfPageToDataUrl(buffer, i, 100));
+      try {
+        for (let i = 1; i <= Math.min(total, 20); i += 1) {
+          previews.push(await renderPdfPageToDataUrl(buffer, i, 100));
+        }
+        setThumbs(previews);
+      } catch {
+        setThumbs([]);
       }
-      setThumbs(previews);
     } catch {
       setThumbs([]);
       setError("Unable to read this PDF. The file may be corrupted.");

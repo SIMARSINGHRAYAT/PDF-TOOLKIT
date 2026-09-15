@@ -1,5 +1,4 @@
 export const appLimits = {
-  maxFileSizeMb: Number(process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB ?? 100),
   maxFilesPerOperation: Number(process.env.NEXT_PUBLIC_MAX_FILES_PER_OPERATION ?? 50),
   maxPagesPerDocument: Number(process.env.NEXT_PUBLIC_MAX_PAGES_PER_DOCUMENT ?? 500),
 };

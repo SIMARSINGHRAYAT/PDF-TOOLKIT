@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { appLimits, formatBytes } from "@/lib/file-utils";
 
 type PdfUploadProps = {
   multiple?: boolean;
@@ -21,11 +20,6 @@ export function PdfUpload({ multiple = false, label = "Drop PDF files here", onS
       const valid = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
       if (!valid) {
         setError(`Unsupported file: ${file.name}. Please upload a valid PDF.`);
-        return;
-      }
-
-      if (file.size > appLimits.maxFileSizeMb * 1024 * 1024) {
-        setError(`File too large: ${file.name}. Max ${appLimits.maxFileSizeMb} MB.`);
         return;
       }
     }
@@ -63,7 +57,7 @@ export function PdfUpload({ multiple = false, label = "Drop PDF files here", onS
       >
         <p className="text-lg font-semibold text-white">{label}</p>
         <p className="mt-2 text-sm text-zinc-400">Drag and drop or click to browse</p>
-        <p className="mt-3 text-xs text-zinc-500">PDF only • Max {formatBytes(appLimits.maxFileSizeMb * 1024 * 1024)}</p>
+        <p className="mt-3 text-xs text-zinc-500">PDF files supported • Large files welcome</p>
         <input
           ref={inputRef}
           type="file"

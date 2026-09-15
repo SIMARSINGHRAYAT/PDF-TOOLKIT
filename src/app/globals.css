@@ -6,12 +6,18 @@
 
 html,
 body {
-  background: #000;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 12% 16%, rgba(255, 214, 64, 0.18), transparent 24rem),
+    radial-gradient(circle at 88% 24%, rgba(47, 157, 255, 0.2), transparent 26rem),
+    radial-gradient(circle at 52% 100%, rgba(45, 219, 133, 0.16), transparent 30rem),
+    #000;
   color: #fff;
 }
 
 body {
   @apply antialiased text-base;
+  background-attachment: fixed;
 }
 
 * {

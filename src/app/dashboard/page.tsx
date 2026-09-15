@@ -20,15 +20,18 @@ const tools = [
 
 export default function DashboardPage() {
   return (
-    <section className="space-y-8">
-      <h1 className="text-4xl font-semibold text-white">Dashboard</h1>
-      <p className="text-lg text-zinc-300">Choose one operation to start processing your PDF files.</p>
+    <section className="space-y-8 py-10 sm:py-16">
+      <div>
+        <p className="text-xs font-medium uppercase tracking-[0.3em] text-emerald-300">Choose a tool</p>
+        <h1 className="mt-3 text-4xl font-semibold text-white sm:text-5xl">Make your PDF move.</h1>
+        <p className="mt-3 text-lg text-zinc-300">Fast, focused tools for the pages that matter.</p>
+      </div>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {tools.map((tool) => (
           <Link
             key={tool.href}
             href={tool.href}
-            className="rounded-2xl border border-zinc-700 bg-zinc-950 p-6 hover:border-zinc-300 hover:bg-zinc-900"
+            className="rounded-2xl border border-white/20 bg-white/[0.04] p-6 backdrop-blur-sm transition hover:-translate-y-1 hover:border-white/60 hover:bg-white/[0.1]"
           >
             <h2 className="text-2xl font-semibold text-white">{tool.title}</h2>
             <p className="mt-3 text-base text-zinc-300">{tool.desc}</p>
