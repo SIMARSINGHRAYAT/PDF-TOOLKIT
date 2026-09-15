@@ -164,6 +164,7 @@ export function CropTool() {
 
       setResultId(id);
       setDone("PDF cropped successfully");
+      router.push(`/result/${id}`);
     } catch {
       setError("We couldn't crop this PDF. Please try again.");
     } finally {
@@ -249,7 +250,7 @@ export function CropTool() {
                 {rect ? (
                   <div
                     data-crop-rect
-                    className="absolute border-2 border-white bg-white/10"
+                    className="absolute border-[3px] border-black bg-[repeating-linear-gradient(0deg,transparent,transparent_11px,rgba(0,0,0,0.9)_12px),repeating-linear-gradient(90deg,transparent,transparent_11px,rgba(0,0,0,0.9)_12px)] shadow-[0_0_0_1px_rgba(255,255,255,0.8)]"
                     style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
                     onMouseDown={(event) => {
                       event.preventDefault();
@@ -264,7 +265,7 @@ export function CropTool() {
                     <button
                       type="button"
                       aria-label="Resize crop area"
-                      className="absolute -bottom-2 -right-2 h-4 w-4 rounded-sm border border-zinc-100 bg-white"
+                      className="absolute -bottom-2 -right-2 h-5 w-5 rounded-sm border-2 border-black bg-white shadow-[0_0_0_1px_rgba(255,255,255,0.8)]"
                       onMouseDown={(event) => {
                         event.preventDefault();
                         event.stopPropagation();

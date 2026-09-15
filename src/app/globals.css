@@ -8,16 +8,30 @@ html,
 body {
   min-height: 100%;
   background:
-    radial-gradient(circle at 12% 16%, rgba(255, 214, 64, 0.18), transparent 24rem),
-    radial-gradient(circle at 88% 24%, rgba(47, 157, 255, 0.2), transparent 26rem),
-    radial-gradient(circle at 52% 100%, rgba(45, 219, 133, 0.16), transparent 30rem),
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 8% 12%, rgba(255, 61, 170, 0.24), transparent 22rem),
+    radial-gradient(circle at 92% 16%, rgba(53, 144, 255, 0.24), transparent 25rem),
+    radial-gradient(circle at 20% 88%, rgba(62, 225, 151, 0.2), transparent 24rem),
+    radial-gradient(circle at 78% 82%, rgba(150, 86, 255, 0.2), transparent 24rem),
+    radial-gradient(circle at 50% 38%, rgba(255, 212, 66, 0.12), transparent 22rem),
+    radial-gradient(circle at 58% 62%, rgba(25, 211, 201, 0.12), transparent 22rem),
     #000;
+  background-size: 42px 42px, 42px 42px, auto, auto, auto, auto, auto, auto, auto;
   color: #fff;
 }
 
 body {
   @apply antialiased text-base;
   background-attachment: fixed;
+}
+
+.chrome-text {
+  background: linear-gradient(110deg, #71717a 0%, #fff 16%, #a1a1aa 30%, #fafafa 46%, #52525b 62%, #fff 78%, #71717a 100%);
+  background-size: 220% auto;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 26px rgba(255, 255, 255, 0.14);
 }
 
 * {

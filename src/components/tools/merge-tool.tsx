@@ -51,10 +51,14 @@ export function MergeTool() {
 
     setItems((prev) => [...prev, ...incomingItems]);
 
-    for (const entry of incomingItems) {
+    await Promise.all(incomingItems.map(async (entry) => {
       try {
         const buffer = await entry.file.arrayBuffer();
         const pages = await getPdfPageCount(buffer);
+
+        setItems((prev) =>
+          prev.map((item) => (item.id === entry.id ? { ...item, pageCount: pages, status: "ready" } : item)),
+        );
 
         let thumb: string | null = null;
         let previewError = false;
@@ -68,14 +72,14 @@ export function MergeTool() {
         setItems((prev) =>
           prev.map((item) =>
             item.id === entry.id
-              ? { ...item, thumbUrl: thumb, pageCount: pages, status: "ready", previewError }
+              ? { ...item, thumbUrl: thumb, previewError }
               : item,
           ),
         );
       } catch {
         setItems((prev) => prev.map((item) => (item.id === entry.id ? { ...item, status: "invalid" } : item)));
       }
-    }
+    }));
   };
 
   const moveById = (sourceId: string, targetId: string) => {
@@ -118,6 +122,7 @@ export function MergeTool() {
 
       setResultId(id);
       setDone("PDF files merged successfully");
+      router.push(`/result/${id}`);
     } catch {
       setError("We couldn't merge these PDF files. Please try again.");
     } finally {

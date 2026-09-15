@@ -81,13 +81,21 @@ export async function cropPdf(
   crop: { x: number; y: number; width: number; height: number },
   pages: number[],
 ): Promise<Uint8Array> {
-  const pdf = await PDFDocument.load(buffer);
-  const targets = pages.length > 0 ? pages : pdf.getPageIndices().map((i) => i + 1);
+  const source = await PDFDocument.load(buffer);
+  const targets = pages.length > 0 ? pages : [1];
+  const output = await PDFDocument.create();
+  const copiedPages = await output.copyPages(
+    source,
+    targets
+      .filter((pageNumber) => pageNumber >= 1 && pageNumber <= source.getPageCount())
+      .map((pageNumber) => pageNumber - 1),
+  );
 
-  for (const pageNumber of targets) {
-    const page = pdf.getPage(pageNumber - 1);
+  for (const page of copiedPages) {
     page.setCropBox(crop.x, crop.y, crop.width, crop.height);
+    output.addPage(page);
   }
 
-  return await pdf.save();
+  if (copiedPages.length === 0) throw new Error("No valid crop page selected.");
+  return await output.save();
 }
