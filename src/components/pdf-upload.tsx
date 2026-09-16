@@ -19,12 +19,14 @@ export function PdfUpload({ multiple = false, maxFiles = appLimits.maxFilesPerOp
   const validate = (files: File[]) => {
     if (files.length === 0) return;
 
-    if (files.length > maxFiles) {
+    const selectedFiles = multiple ? files : files.slice(0, 1);
+
+    if (multiple && selectedFiles.length > maxFiles) {
       setError(`Please choose no more than ${maxFiles} PDF files at a time.`);
       return;
     }
 
-    for (const file of files) {
+    for (const file of selectedFiles) {
       const valid = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
       if (!valid) {
         setError(`Unsupported file: ${file.name}. Please upload a valid PDF.`);
@@ -33,7 +35,8 @@ export function PdfUpload({ multiple = false, maxFiles = appLimits.maxFilesPerOp
     }
 
     setError(null);
-    onSelect(files);
+    onSelect(selectedFiles);
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   return (
@@ -65,7 +68,7 @@ export function PdfUpload({ multiple = false, maxFiles = appLimits.maxFilesPerOp
       >
         <p className="text-lg font-semibold text-white">{label}</p>
         <p className="mt-2 text-sm text-zinc-400">Drag and drop or click to browse</p>
-        <p className="mt-3 text-xs text-zinc-500">PDF files supported • Large files welcome</p>
+        <p className="mt-3 text-xs text-zinc-500">{multiple ? `Up to ${maxFiles} PDF files` : "Only one PDF file"} • PDF format supported</p>
         <input
           ref={inputRef}
           type="file"

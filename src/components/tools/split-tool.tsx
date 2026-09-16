@@ -130,7 +130,7 @@ export function SplitTool() {
         <Link href="/dashboard" className="text-sm text-zinc-300 hover:text-white">← Back</Link>
       </div>
 
-      <PdfUpload onSelect={(incoming) => void onFile(incoming[0] ?? null)} onClear={() => void onFile(null)} label="Upload a PDF to split" />
+      <PdfUpload maxFiles={1} onSelect={(incoming) => void onFile(incoming[0] ?? null)} onClear={() => void onFile(null)} label="Upload a PDF to split" />
 
       {file ? (
         <div className="rounded-2xl border border-zinc-700 bg-zinc-950 p-4 sm:p-5">

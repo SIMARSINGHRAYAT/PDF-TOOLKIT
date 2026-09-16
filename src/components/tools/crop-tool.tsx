@@ -186,7 +186,7 @@ export function CropTool() {
         <Link href="/dashboard" className="text-sm text-zinc-300 hover:text-white">← Back</Link>
       </div>
 
-      <PdfUpload onSelect={(incoming) => void onFile(incoming[0] ?? null)} onClear={() => void onFile(null)} label="Upload a PDF to crop" />
+      <PdfUpload maxFiles={1} onSelect={(incoming) => void onFile(incoming[0] ?? null)} onClear={() => void onFile(null)} label="Upload a PDF to crop (one PDF only)" />
 
       {file && pageCount > 0 ? (
         <div className="rounded-2xl border border-white/20 bg-white/[0.04] p-4 backdrop-blur-sm sm:p-5">

@@ -27,6 +27,7 @@ function toPdfBlob(bytes: Uint8Array) {
 
 export function MergeTool() {
   const router = useRouter();
+  const mergeFileLimit = Math.max(2, appLimits.maxFilesPerOperation);
   const [items, setItems] = useState<MergeItem[]>([]);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,9 +43,9 @@ export function MergeTool() {
 
   const addFiles = async (incoming: File[]) => {
     clearResultState();
-    const availableSlots = appLimits.maxFilesPerOperation - items.length;
+    const availableSlots = mergeFileLimit - items.length;
     if (incoming.length > availableSlots) {
-      setError(`You can merge up to ${appLimits.maxFilesPerOperation} PDF files per operation.`);
+      setError(`You can merge up to ${mergeFileLimit} PDF files per operation.`);
       return;
     }
 
@@ -135,7 +136,7 @@ export function MergeTool() {
         <Link href="/dashboard" className="text-sm text-zinc-300 hover:text-white">← Back</Link>
       </div>
 
-      <PdfUpload multiple onSelect={(incoming) => void addFiles(incoming)} label="Upload PDF files to merge" />
+      <PdfUpload multiple maxFiles={mergeFileLimit} onSelect={(incoming) => void addFiles(incoming)} label="Upload PDF files to merge" />
 
       <div className="space-y-3">
         {items.map((item, idx) => (
