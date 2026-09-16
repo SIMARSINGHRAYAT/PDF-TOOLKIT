@@ -1,6 +1,11 @@
+function configuredLimit(value: string | undefined): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : Infinity;
+}
+
 export const appLimits = {
-  maxFilesPerOperation: Number(process.env.NEXT_PUBLIC_MAX_FILES_PER_OPERATION ?? 50),
-  maxPagesPerDocument: Number(process.env.NEXT_PUBLIC_MAX_PAGES_PER_DOCUMENT ?? 500),
+  maxFilesPerOperation: configuredLimit(process.env.NEXT_PUBLIC_MAX_FILES_PER_OPERATION),
+  maxPagesPerDocument: configuredLimit(process.env.NEXT_PUBLIC_MAX_PAGES_PER_DOCUMENT),
 };
 
 export function formatBytes(bytes: number): string {

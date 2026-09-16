@@ -78,7 +78,7 @@ export function CropTool() {
 
     try {
       const count = await getPdfPageCount(await selected.arrayBuffer());
-      if (count > appLimits.maxPagesPerDocument) {
+      if (Number.isFinite(appLimits.maxPagesPerDocument) && count > appLimits.maxPagesPerDocument) {
         setPageCount(0);
         setError(`This PDF exceeds the ${appLimits.maxPagesPerDocument}-page limit.`);
         return;

@@ -21,7 +21,7 @@ export function PdfUpload({ multiple = false, maxFiles = appLimits.maxFilesPerOp
 
     const selectedFiles = multiple ? files : files.slice(0, 1);
 
-    if (multiple && selectedFiles.length > maxFiles) {
+    if (multiple && Number.isFinite(maxFiles) && selectedFiles.length > maxFiles) {
       setError(`Please choose no more than ${maxFiles} PDF files at a time.`);
       return;
     }
@@ -68,7 +68,7 @@ export function PdfUpload({ multiple = false, maxFiles = appLimits.maxFilesPerOp
       >
         <p className="text-lg font-semibold text-white">{label}</p>
         <p className="mt-2 text-sm text-zinc-400">Drag and drop or click to browse</p>
-        <p className="mt-3 text-xs text-zinc-500">{multiple ? `Up to ${maxFiles} PDF files` : "Only one PDF file"} • PDF format supported</p>
+        <p className="mt-3 text-xs text-zinc-500">{multiple ? (Number.isFinite(maxFiles) ? `Up to ${maxFiles} PDF files` : "Multiple PDF files") : "Only one PDF file"} • PDF format supported</p>
         <input
           ref={inputRef}
           type="file"

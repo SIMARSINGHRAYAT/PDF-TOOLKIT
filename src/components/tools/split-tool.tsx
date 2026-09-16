@@ -80,7 +80,7 @@ export function SplitTool() {
       setPreviewData(buffer);
       setPageCount(1);
       const total = await getPdfPageCount(buffer);
-      if (total > appLimits.maxPagesPerDocument) {
+      if (Number.isFinite(appLimits.maxPagesPerDocument) && total > appLimits.maxPagesPerDocument) {
         setPreviewData(null);
         setPageCount(0);
         setError(`This PDF exceeds the ${appLimits.maxPagesPerDocument}-page limit.`);

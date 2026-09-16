@@ -44,7 +44,7 @@ export function MergeTool() {
   const addFiles = async (incoming: File[]) => {
     clearResultState();
     const availableSlots = mergeFileLimit - items.length;
-    if (incoming.length > availableSlots) {
+    if (Number.isFinite(mergeFileLimit) && incoming.length > availableSlots) {
       setError(`You can merge up to ${mergeFileLimit} PDF files per operation.`);
       return;
     }
@@ -65,7 +65,7 @@ export function MergeTool() {
         const buffer = await entry.file.arrayBuffer();
         const pages = await getPdfPageCount(buffer);
 
-        if (pages > appLimits.maxPagesPerDocument) {
+        if (Number.isFinite(appLimits.maxPagesPerDocument) && pages > appLimits.maxPagesPerDocument) {
           throw new Error(`This PDF exceeds the ${appLimits.maxPagesPerDocument}-page limit.`);
         }
 
