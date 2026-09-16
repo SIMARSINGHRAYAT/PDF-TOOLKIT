@@ -190,6 +190,15 @@ export function CropTool() {
 
       {file && pageCount > 0 ? (
         <div className="rounded-2xl border border-white/20 bg-white/[0.04] p-4 backdrop-blur-sm sm:p-5">
+          <div className="mb-5 rounded-xl border border-cyan-200/20 bg-cyan-300/[0.08] p-4 text-sm text-cyan-50">
+            <p className="font-semibold text-cyan-100">How to crop this PDF</p>
+            <ol className="mt-2 list-decimal space-y-1 pl-5 text-cyan-50/80">
+              <li>Use Previous page or Next page to choose the page you want to crop.</li>
+              <li>Click Crop PDF, then drag across the preview to draw the crop area.</li>
+              <li>Drag inside the grid to move it, or drag the corner handle to resize it.</li>
+              <li>Click Apply Crop when the selection is ready.</li>
+            </ol>
+          </div>
           <div className="flex items-center justify-between gap-3 text-sm text-zinc-300">
             <button
               type="button"

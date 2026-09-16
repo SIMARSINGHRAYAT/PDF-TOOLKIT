@@ -77,19 +77,26 @@ export function ResultView({ id }: ResultViewProps) {
         <label htmlFor="filename" className="text-sm text-zinc-300">File Name</label>
         <input
           id="filename"
-          value={filename ?? result.defaultFilename}
+          value={filename ?? ""}
           onChange={(event) => setFilename(event.target.value)}
           className="mt-2 w-full px-3 py-2 text-base"
-          placeholder="merged-document.pdf"
+          placeholder="Enter a file name, for example merged-document.pdf"
         />
         <button
           type="button"
-          onClick={() => void saveBlob(result.blob, normalizePdfFilename(filename ?? result.defaultFilename, result.defaultFilename))}
-          className="mt-4 rounded-xl border border-zinc-400 bg-zinc-900 px-5 py-3 text-base font-semibold text-white hover:bg-zinc-800"
+          disabled={!filename?.trim()}
+          onClick={() => void saveBlob(result.blob, normalizePdfFilename(filename ?? "", result.defaultFilename))}
+          className="mt-4 rounded-xl border border-zinc-400 bg-zinc-900 px-5 py-3 text-base font-semibold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Download PDF
         </button>
       </div>
+
+      {result.sourcePath === "/crop-pdf" ? (
+        <Link href="/crop-pdf" className="inline-flex rounded-xl border border-cyan-200/40 bg-cyan-300/10 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/20">
+          Re-crop this PDF
+        </Link>
+      ) : null}
     </section>
   );
 }

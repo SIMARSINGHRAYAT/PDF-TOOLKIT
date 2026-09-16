@@ -58,16 +58,16 @@ export function PdfPagePreview({ data, pageCount, page, onPageChange, label = "P
         <span>{label}</span>
         <span>Page {page} of {pageCount}</span>
       </div>
-      <div className="flex min-h-[420px] items-center justify-center overflow-auto rounded-xl border border-white/15 bg-black/40 p-3">
+      <div className="flex min-h-[420px] items-center justify-center overflow-auto rounded-xl border border-white/15 bg-white/[0.04] p-3">
         {image && imageKey === `${data ? getDataId(data) : 0}-${page}` ? <img src={image} alt={`${label}, page ${page}`} className="max-h-[72vh] w-auto max-w-full object-contain" /> : null}
         {imageKey !== `${data ? getDataId(data) : 0}-${page}` ? <p className="text-sm text-zinc-400">Preparing page preview...</p> : null}
         {imageKey === `${data ? getDataId(data) : 0}-${page}` && !image ? <p className="text-sm text-zinc-400">Preview unavailable for this page.</p> : null}
       </div>
       <div className="mt-3 flex items-center justify-between">
-        <button type="button" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1} className="px-3 py-1.5 text-sm disabled:opacity-40">
+        <button type="button" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1} className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-sm hover:bg-white/[0.12] disabled:opacity-40">
           Previous page
         </button>
-        <button type="button" onClick={() => onPageChange(Math.min(pageCount, page + 1))} disabled={page >= pageCount} className="px-3 py-1.5 text-sm disabled:opacity-40">
+        <button type="button" onClick={() => onPageChange(Math.min(pageCount, page + 1))} disabled={page >= pageCount} className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-sm hover:bg-white/[0.12] disabled:opacity-40">
           Next page
         </button>
       </div>

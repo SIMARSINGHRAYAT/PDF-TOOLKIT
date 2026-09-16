@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PdfPagePreview } from "@/components/pdf-page-preview";
 import { PdfUpload } from "@/components/pdf-upload";
-import { appLimits, withSuffix } from "@/lib/file-utils";
+import { appLimits, normalizePdfFilename, saveBlob, withSuffix } from "@/lib/file-utils";
 import { getPdfPageCount } from "@/lib/pdf-render";
 import { insertPdfPage } from "@/lib/pdf-tools";
-import { savePdfResult } from "@/lib/result-store";
 
 function toPdfBlob(bytes: Uint8Array) {
   const copy = new Uint8Array(bytes.byteLength);
@@ -19,14 +17,16 @@ function toPdfBlob(bytes: Uint8Array) {
 type LoadedPdf = { file: File; data: ArrayBuffer; pageCount: number };
 
 export function InsertPageTool() {
-  const router = useRouter();
   const [destination, setDestination] = useState<LoadedPdf | null>(null);
   const [source, setSource] = useState<LoadedPdf | null>(null);
   const [sourcePage, setSourcePage] = useState(1);
   const [insertAfter, setInsertAfter] = useState(1);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resultId, setResultId] = useState<string | null>(null);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewData, setPreviewData] = useState<ArrayBuffer | null>(null);
+  const [previewPage, setPreviewPage] = useState(1);
+  const [filename, setFilename] = useState("");
 
   const loadPdf = async (file: File): Promise<LoadedPdf> => {
     const data = await file.arrayBuffer();
@@ -39,7 +39,8 @@ export function InsertPageTool() {
 
   const selectDestination = async (file: File | null) => {
     setDestination(null);
-    setResultId(null);
+    setPreviewBytes(null);
+    setPreviewData(null);
     setError(null);
     if (!file) return;
     try {
@@ -53,7 +54,8 @@ export function InsertPageTool() {
 
   const selectSource = async (file: File | null) => {
     setSource(null);
-    setResultId(null);
+    setPreviewBytes(null);
+    setPreviewData(null);
     setError(null);
     if (!file) return;
     try {
@@ -74,17 +76,13 @@ export function InsertPageTool() {
     try {
       setProcessing(true);
       setError(null);
-      setResultId(null);
       const bytes = await insertPdfPage(destination.data, source.data, sourcePage, insertAfter);
-      const id = savePdfResult({
-        blob: toPdfBlob(bytes),
-        defaultFilename: withSuffix(destination.file.name, "page-inserted", "pdf"),
-        heading: "PDF Page Inserted",
-        sourcePath: "/insert-page",
-        successMessage: "The PDF page was inserted successfully.",
-      });
-      setResultId(id);
-      router.push(`/result/${id}`);
+      const previewCopy = new Uint8Array(bytes.byteLength);
+      previewCopy.set(bytes);
+      setPreviewBytes(bytes);
+      setPreviewData(previewCopy.buffer);
+      setPreviewPage(1);
+      setFilename("");
     } catch {
       setError("We couldn't insert this PDF page. Check the selected page and position.");
     } finally {
@@ -120,7 +118,20 @@ export function InsertPageTool() {
           <button type="button" onClick={() => void insertPage()} disabled={processing} className="rounded-xl border border-zinc-400 bg-zinc-900 px-5 py-3 text-base font-semibold text-white disabled:opacity-50">
             {processing ? "Inserting page..." : `Insert source page ${sourcePage}`}
           </button>
-          {resultId ? <button type="button" onClick={() => router.push(`/result/${resultId}`)} className="ml-3 px-4 py-2 text-sm">Download result</button> : null}
+        </div>
+      ) : null}
+
+      {previewBytes && previewData ? (
+        <div className="space-y-4 rounded-2xl border border-emerald-200/25 bg-white/[0.06] p-4 backdrop-blur-sm sm:p-5">
+          <p className="font-semibold text-emerald-100">Preview the inserted PDF</p>
+          <PdfPagePreview data={previewData} pageCount={destination ? destination.pageCount + 1 : 1} page={previewPage} onPageChange={setPreviewPage} label="Inserted PDF preview" />
+          <div>
+            <label htmlFor="inserted-filename" className="text-sm text-zinc-300">File name</label>
+            <input id="inserted-filename" value={filename} onChange={(event) => setFilename(event.target.value)} placeholder="Enter a file name, for example updated-document.pdf" className="mt-2 w-full px-3 py-2 text-base" />
+            <button type="button" disabled={!filename.trim()} onClick={() => void saveBlob(toPdfBlob(previewBytes), normalizePdfFilename(filename, withSuffix(destination?.file.name ?? "document.pdf", "page-inserted", "pdf")))} className="mt-4 rounded-xl border border-emerald-200/50 bg-emerald-300/15 px-5 py-3 text-base font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">
+              Download inserted PDF
+            </button>
+          </div>
         </div>
       ) : null}
 
