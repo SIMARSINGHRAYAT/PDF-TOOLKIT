@@ -28,6 +28,7 @@ export function savePdfResult(payload: Omit<PdfResultRecord, "id">): string {
   const store = ensureStore();
   const result = { id, ...payload };
   store[id] = result;
+  void saveBrowserResult(result);
   void publishPdfResult(result);
   return id;
 }
@@ -40,6 +41,12 @@ export function getPdfResult(id: string): PdfResultRecord | null {
 export async function getPdfResultAsync(id: string): Promise<PdfResultRecord | null> {
   const local = getPdfResult(id);
   if (local) return local;
+
+  const browserResult = await getBrowserResult(id);
+  if (browserResult) {
+    ensureStore()[id] = browserResult;
+    return browserResult;
+  }
 
   try {
     const response = await fetch(`/api/results/${encodeURIComponent(id)}`, { cache: "no-store" });
@@ -72,6 +79,55 @@ async function publishPdfResult(result: PdfResultRecord): Promise<void> {
     await fetch("/api/results", { method: "POST", body: formData, keepalive: true });
   } catch {
     // Local browser storage remains the fallback when server storage is unavailable.
+  }
+}
+
+const browserStoreName = "pdf-results";
+const browserDatabaseName = "pdf-toolkit";
+
+function openBrowserDatabase(): Promise<IDBDatabase | null> {
+  if (typeof indexedDB === "undefined") return Promise.resolve(null);
+
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(browserDatabaseName, 1);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore(browserStoreName, { keyPath: "id" });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveBrowserResult(result: PdfResultRecord): Promise<void> {
+  try {
+    const database = await openBrowserDatabase();
+    if (!database) return;
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(browserStoreName, "readwrite");
+      transaction.objectStore(browserStoreName).put(result);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+    database.close();
+  } catch {
+    // In-memory storage remains the final fallback when IndexedDB is unavailable.
+  }
+}
+
+async function getBrowserResult(id: string): Promise<PdfResultRecord | null> {
+  try {
+    const database = await openBrowserDatabase();
+    if (!database) return null;
+    const result = await new Promise<PdfResultRecord | null>((resolve, reject) => {
+      const transaction = database.transaction(browserStoreName, "readonly");
+      const request = transaction.objectStore(browserStoreName).get(id);
+      request.onsuccess = () => resolve((request.result as PdfResultRecord | undefined) ?? null);
+      request.onerror = () => reject(request.error);
+    });
+    database.close();
+    return result;
+  } catch {
+    return null;
   }
 }
 
