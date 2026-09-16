@@ -1,21 +1,28 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { appLimits } from "@/lib/file-utils";
 
 type PdfUploadProps = {
   multiple?: boolean;
+  maxFiles?: number;
   label?: string;
   onSelect: (files: File[]) => void;
   onClear?: () => void;
 };
 
-export function PdfUpload({ multiple = false, label = "Drop PDF files here", onSelect, onClear }: PdfUploadProps) {
+export function PdfUpload({ multiple = false, maxFiles = appLimits.maxFilesPerOperation, label = "Drop PDF files here", onSelect, onClear }: PdfUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const validate = (files: File[]) => {
     if (files.length === 0) return;
+
+    if (files.length > maxFiles) {
+      setError(`Please choose no more than ${maxFiles} PDF files at a time.`);
+      return;
+    }
 
     for (const file of files) {
       const valid = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");

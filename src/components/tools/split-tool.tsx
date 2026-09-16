@@ -7,7 +7,7 @@ import { PdfPagePreview } from "@/components/pdf-page-preview";
 import { getPdfPageCount } from "@/lib/pdf-render";
 import JSZip from "jszip";
 import { splitPdf } from "@/lib/pdf-tools";
-import { formatBytes, saveBlob, triggerDownload, withSuffix } from "@/lib/file-utils";
+import { appLimits, formatBytes, saveBlob, triggerDownload, withSuffix } from "@/lib/file-utils";
 
 function toPdfBlob(bytes: Uint8Array) {
   const copy = new Uint8Array(bytes.byteLength);
@@ -80,6 +80,12 @@ export function SplitTool() {
       setPreviewData(buffer);
       setPageCount(1);
       const total = await getPdfPageCount(buffer);
+      if (total > appLimits.maxPagesPerDocument) {
+        setPreviewData(null);
+        setPageCount(0);
+        setError(`This PDF exceeds the ${appLimits.maxPagesPerDocument}-page limit.`);
+        return;
+      }
       setPageCount(total);
     } catch {
       setPreviewData(null);

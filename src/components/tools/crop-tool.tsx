@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PdfUpload } from "@/components/pdf-upload";
-import { withSuffix } from "@/lib/file-utils";
+import { appLimits, withSuffix } from "@/lib/file-utils";
 import { getPdfPageCount, renderPdfPageForEditor } from "@/lib/pdf-render";
 import { cropPdf } from "@/lib/pdf-tools";
 import { savePdfResult } from "@/lib/result-store";
@@ -78,6 +78,11 @@ export function CropTool() {
 
     try {
       const count = await getPdfPageCount(await selected.arrayBuffer());
+      if (count > appLimits.maxPagesPerDocument) {
+        setPageCount(0);
+        setError(`This PDF exceeds the ${appLimits.maxPagesPerDocument}-page limit.`);
+        return;
+      }
       setPageCount(count);
       setPage(1);
       await loadPreview(selected, 1);

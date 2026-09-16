@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { normalizePdfFilename, saveBlob } from "@/lib/file-utils";
-import { getPdfResult } from "@/lib/result-store";
+import { getPdfResultAsync } from "@/lib/result-store";
 import { getPdfPageCount } from "@/lib/pdf-render";
 import { PdfPagePreview } from "@/components/pdf-page-preview";
 
@@ -14,7 +14,8 @@ type ResultViewProps = {
 
 export function ResultView({ id }: ResultViewProps) {
   const router = useRouter();
-  const result = useMemo(() => getPdfResult(id), [id]);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof getPdfResultAsync>>>(null);
+  const [loading, setLoading] = useState(true);
   const [filename, setFilename] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<ArrayBuffer | null>(null);
   const [pageCount, setPageCount] = useState(0);
@@ -22,18 +23,30 @@ export function ResultView({ id }: ResultViewProps) {
 
   useEffect(() => {
     let active = true;
-    if (!result) return () => { active = false; };
-    void result.blob.arrayBuffer().then(async (data) => {
-      const count = await getPdfPageCount(data);
+    void getPdfResultAsync(id).then((loaded) => {
       if (!active) return;
-      setPreviewData(data);
-      setPageCount(count);
-      setPreviewPage(1);
+      setResult(loaded);
+      setLoading(false);
+      if (!loaded) return;
+      return loaded.blob.arrayBuffer().then(async (data) => {
+        const count = await getPdfPageCount(data);
+        if (!active) return;
+        setPreviewData(data);
+        setPageCount(count);
+        setPreviewPage(1);
+      });
     }).catch(() => {
-      if (active) setPreviewData(null);
+      if (active) {
+        setLoading(false);
+        setPreviewData(null);
+      }
     });
     return () => { active = false; };
-  }, [result]);
+  }, [id]);
+
+  if (loading) {
+    return <section className="mx-auto max-w-3xl space-y-4"><p className="text-zinc-300">Loading your PDF...</p></section>;
+  }
 
   if (!result) {
     return (

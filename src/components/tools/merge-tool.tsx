@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PdfUpload } from "@/components/pdf-upload";
 import { PdfPagePreview } from "@/components/pdf-page-preview";
-import { formatBytes, withSuffix } from "@/lib/file-utils";
+import { appLimits, formatBytes, withSuffix } from "@/lib/file-utils";
 import { getPdfPageCount } from "@/lib/pdf-render";
 import { mergePdfs } from "@/lib/pdf-tools";
 import { savePdfResult } from "@/lib/result-store";
@@ -42,6 +42,12 @@ export function MergeTool() {
 
   const addFiles = async (incoming: File[]) => {
     clearResultState();
+    const availableSlots = appLimits.maxFilesPerOperation - items.length;
+    if (incoming.length > availableSlots) {
+      setError(`You can merge up to ${appLimits.maxFilesPerOperation} PDF files per operation.`);
+      return;
+    }
+
     const incomingItems: MergeItem[] = incoming.map((file) => ({
       id: crypto.randomUUID(),
       file,
@@ -57,6 +63,10 @@ export function MergeTool() {
       try {
         const buffer = await entry.file.arrayBuffer();
         const pages = await getPdfPageCount(buffer);
+
+        if (pages > appLimits.maxPagesPerDocument) {
+          throw new Error(`This PDF exceeds the ${appLimits.maxPagesPerDocument}-page limit.`);
+        }
 
         setItems((prev) =>
           prev.map((item) => (item.id === entry.id ? { ...item, pageCount: pages, previewData: buffer, status: "ready" } : item)),

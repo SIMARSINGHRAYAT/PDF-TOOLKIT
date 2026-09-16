@@ -1,6 +1,6 @@
 # PDF Toolkit
 
-Browser-based PDF tools for merging, splitting, and cropping PDF files.
+Fast browser-assisted PDF tools for merging, splitting, and cropping PDF files. PDF transforms run locally for immediate interaction. Generated results are also published to PostgreSQL when configured, so a result link can survive refreshes and be opened from another device.
 
 ## Local development
 
@@ -10,6 +10,16 @@ npm run dev
 ```
 
 Open `http://localhost:3000` after the development server starts.
+
+## Result storage
+
+Set `DATABASE_URL` to a PostgreSQL database and create the result table:
+
+```bash
+npx drizzle-kit push
+```
+
+The result API stores generated PDFs as binary data with a 24-hour default expiry. Configure limits with `PDF_RESULT_MAX_BYTES` and `PDF_RESULT_TTL_MS`. Each result uses a random opaque id; there is no account system yet, so anyone who has a result URL can download that result. Without `DATABASE_URL`, the app remains usable with current-tab fallback storage.
 
 ## Verification
 
@@ -25,10 +35,10 @@ The linter currently reports only Next.js image optimization warnings for PDF pr
 
 1. Push this repository to GitHub, GitLab, or Bitbucket.
 2. In Vercel, select **Add New Project**, import the repository, and keep the detected Next.js settings.
-3. Add the variables from `.env.example` in **Project Settings > Environment Variables**. The three `NEXT_PUBLIC_*` values are optional and have defaults. `DATABASE_URL` is optional unless you want `/api/health` to verify a PostgreSQL connection.
+3. Add `DATABASE_URL` and optionally `PDF_RESULT_MAX_BYTES`, `PDF_RESULT_TTL_MS`, and the `NEXT_PUBLIC_*` limit values in **Project Settings > Environment Variables**. `DATABASE_URL` enables durable, multi-instance result storage.
 4. Deploy. Vercel will use `npm run build` automatically.
 
-No upload bucket or writable filesystem is required: PDF processing and downloads happen in the browser. Generated results are held in the current browser tab, so a result URL is not intended to survive a full page refresh.
+No upload bucket or writable filesystem is required: PDF processing happens in the browser and durable results use PostgreSQL.
 
 ## Health check
 

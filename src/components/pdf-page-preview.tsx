@@ -3,6 +3,18 @@
 import { useEffect, useState } from "react";
 import { renderPdfPageForEditor } from "@/lib/pdf-render";
 
+const dataIds = new WeakMap<ArrayBuffer, number>();
+let nextDataId = 1;
+
+function getDataId(data: ArrayBuffer): number {
+  const existing = dataIds.get(data);
+  if (existing) return existing;
+  const id = nextDataId;
+  nextDataId += 1;
+  dataIds.set(data, id);
+  return id;
+}
+
 type PdfPagePreviewProps = {
   data: ArrayBuffer | null;
   pageCount: number;
@@ -23,7 +35,7 @@ export function PdfPagePreview({ data, pageCount, page, onPageChange, label = "P
       };
     }
 
-    const renderKey = `${page}-${data.byteLength}`;
+    const renderKey = `${getDataId(data)}-${page}`;
     void renderPdfPageForEditor(data, page, 900)
       .then((rendered) => {
         if (active) {
@@ -47,9 +59,9 @@ export function PdfPagePreview({ data, pageCount, page, onPageChange, label = "P
         <span>Page {page} of {pageCount}</span>
       </div>
       <div className="flex min-h-[420px] items-center justify-center overflow-auto rounded-xl border border-white/15 bg-black/40 p-3">
-        {image ? <img src={image} alt={`${label}, page ${page}`} className="max-h-[72vh] w-auto max-w-full object-contain" /> : null}
-        {!image && imageKey !== `${page}-${data?.byteLength ?? 0}` ? <p className="text-sm text-zinc-400">Preparing page preview...</p> : null}
-        {imageKey === `${page}-${data?.byteLength ?? 0}` && !image ? <p className="text-sm text-zinc-400">Preview unavailable for this page.</p> : null}
+        {image && imageKey === `${data ? getDataId(data) : 0}-${page}` ? <img src={image} alt={`${label}, page ${page}`} className="max-h-[72vh] w-auto max-w-full object-contain" /> : null}
+        {imageKey !== `${data ? getDataId(data) : 0}-${page}` ? <p className="text-sm text-zinc-400">Preparing page preview...</p> : null}
+        {imageKey === `${data ? getDataId(data) : 0}-${page}` && !image ? <p className="text-sm text-zinc-400">Preview unavailable for this page.</p> : null}
       </div>
       <div className="mt-3 flex items-center justify-between">
         <button type="button" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1} className="px-3 py-1.5 text-sm disabled:opacity-40">
