@@ -21,8 +21,8 @@ export async function insertPdfPage(
   sourcePageNumber: number,
   insertAfterPage: number,
 ): Promise<Uint8Array> {
-  const destination = await PDFDocument.load(destinationBuffer);
-  const source = await PDFDocument.load(sourceBuffer);
+  const destination = await PDFDocument.load(destinationBuffer, { ignoreEncryption: true });
+  const source = await PDFDocument.load(sourceBuffer, { ignoreEncryption: true });
   const destinationPageCount = destination.getPageCount();
   const sourcePageCount = source.getPageCount();
 
@@ -33,14 +33,23 @@ export async function insertPdfPage(
     throw new Error("The insertion position is outside the destination page range.");
   }
 
+  const safeSourcePage = Math.floor(sourcePageNumber);
+  const safeInsertAfter = Math.floor(insertAfterPage);
+  if (safeSourcePage < 1 || safeSourcePage > sourcePageCount) {
+    throw new Error("The source page is outside the available page range.");
+  }
+  if (safeInsertAfter < 0 || safeInsertAfter > destinationPageCount) {
+    throw new Error("The insertion position is outside the destination page range.");
+  }
+
   const output = await PDFDocument.create();
   const destinationPages = await output.copyPages(destination, destination.getPageIndices());
-  const [sourcePage] = await output.copyPages(source, [sourcePageNumber - 1]);
+  const [sourcePage] = await output.copyPages(source, [safeSourcePage - 1]);
 
-  if (insertAfterPage === 0) output.addPage(sourcePage);
+  if (safeInsertAfter === 0) output.addPage(sourcePage);
   destinationPages.forEach((page, index) => {
     output.addPage(page);
-    if (index + 1 === insertAfterPage) output.addPage(sourcePage);
+    if (index + 1 === safeInsertAfter) output.addPage(sourcePage);
   });
 
   return await output.save();

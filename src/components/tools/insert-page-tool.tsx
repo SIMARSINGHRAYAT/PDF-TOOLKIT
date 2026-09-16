@@ -83,8 +83,8 @@ export function InsertPageTool() {
       setPreviewData(previewCopy.buffer);
       setPreviewPage(1);
       setFilename("");
-    } catch {
-      setError("We couldn't insert this PDF page. Check the selected page and position.");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "We couldn't insert this PDF page. Please choose valid PDF files.");
     } finally {
       setProcessing(false);
     }
