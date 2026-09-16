@@ -16,6 +16,11 @@ const tools = [
     href: "/merge-pdf",
     desc: "Combine multiple PDF files into one document.",
   },
+  {
+    title: "Insert a PDF Page",
+    href: "/insert-page",
+    desc: "Place one page from a PDF anywhere inside another PDF.",
+  },
 ];
 
 export default function DashboardPage() {

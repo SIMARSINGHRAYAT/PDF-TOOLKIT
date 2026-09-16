@@ -15,6 +15,37 @@ export async function mergePdfs(buffers: ArrayBuffer[]): Promise<Uint8Array> {
   return await merged.save();
 }
 
+export async function insertPdfPage(
+  destinationBuffer: ArrayBuffer,
+  sourceBuffer: ArrayBuffer,
+  sourcePageNumber: number,
+  insertAfterPage: number,
+): Promise<Uint8Array> {
+  const destination = await PDFDocument.load(destinationBuffer);
+  const source = await PDFDocument.load(sourceBuffer);
+  const destinationPageCount = destination.getPageCount();
+  const sourcePageCount = source.getPageCount();
+
+  if (sourcePageNumber < 1 || sourcePageNumber > sourcePageCount) {
+    throw new Error("The source page is outside the available page range.");
+  }
+  if (insertAfterPage < 0 || insertAfterPage > destinationPageCount) {
+    throw new Error("The insertion position is outside the destination page range.");
+  }
+
+  const output = await PDFDocument.create();
+  const destinationPages = await output.copyPages(destination, destination.getPageIndices());
+  const [sourcePage] = await output.copyPages(source, [sourcePageNumber - 1]);
+
+  if (insertAfterPage === 0) output.addPage(sourcePage);
+  destinationPages.forEach((page, index) => {
+    output.addPage(page);
+    if (index + 1 === insertAfterPage) output.addPage(sourcePage);
+  });
+
+  return await output.save();
+}
+
 export async function splitPdf(
   buffer: ArrayBuffer,
   mode: SplitMode,
