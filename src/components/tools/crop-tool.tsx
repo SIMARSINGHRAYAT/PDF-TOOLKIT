@@ -249,7 +249,7 @@ export function CropTool() {
 
           <p className="mt-3 text-xs text-zinc-400">Select Crop PDF, then drag across the page. Drag inside the black grid to move it, or drag the corner to resize it.</p>
 
-          <div className="relative mt-4 w-full overflow-auto rounded-xl border border-zinc-700 bg-black p-3">
+          <div className="relative mt-4 w-full overflow-auto rounded-xl border border-white/15 bg-white/[0.04] p-3">
             {previewLoading ? <p className="p-8 text-sm text-zinc-400">Loading PDF preview...</p> : null}
 
             {preview ? (
