@@ -6,9 +6,10 @@ type PdfUploadProps = {
   multiple?: boolean;
   label?: string;
   onSelect: (files: File[]) => void;
+  onClear?: () => void;
 };
 
-export function PdfUpload({ multiple = false, label = "Drop PDF files here", onSelect }: PdfUploadProps) {
+export function PdfUpload({ multiple = false, label = "Drop PDF files here", onSelect, onClear }: PdfUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +68,18 @@ export function PdfUpload({ multiple = false, label = "Drop PDF files here", onS
           onChange={(event) => validate(Array.from(event.target.files ?? []))}
         />
       </div>
+      {onClear ? (
+        <button
+          type="button"
+          onClick={() => {
+            if (inputRef.current) inputRef.current.value = "";
+            onClear();
+          }}
+          className="px-3 py-1.5 text-sm text-zinc-300 hover:text-white"
+        >
+          × Choose a different file
+        </button>
+      ) : null}
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
     </div>
   );

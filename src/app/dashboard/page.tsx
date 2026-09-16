@@ -21,7 +21,7 @@ const tools = [
 export default function DashboardPage() {
   return (
     <section className="space-y-8 py-10 sm:py-16">
-      <p className="text-center text-sm font-medium uppercase tracking-[0.35em] text-emerald-300">Choose a tool</p>
+      <p className="text-center text-lg font-medium uppercase tracking-[0.35em] text-emerald-300 sm:text-2xl">Choose a tool</p>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {tools.map((tool) => (
           <Link

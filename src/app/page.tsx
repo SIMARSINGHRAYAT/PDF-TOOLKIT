@@ -8,7 +8,7 @@ export default function WelcomePage() {
         <div className="chrome-text mt-10 flex items-center justify-center gap-5 text-base font-semibold uppercase tracking-[0.35em] sm:text-xl">
           <span>Merge</span><span>•</span><span>Split</span><span>•</span><span>Crop</span>
         </div>
-        <blockquote className="chrome-text mx-auto mt-16 max-w-2xl text-xl italic sm:text-2xl">
+        <blockquote className="chrome-text mx-auto mt-16 max-w-2xl text-2xl italic sm:text-3xl">
           “Simple tools. Smarter documents.”
           <cite className="mt-3 block text-sm text-zinc-500">- PDF Toolkit</cite>
         </blockquote>

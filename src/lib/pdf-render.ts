@@ -7,7 +7,17 @@ if (typeof window !== "undefined") {
   GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 }
 
+const documentCache = new WeakMap<ArrayBuffer, Promise<any>>();
+
 export async function loadPdfDocument(data: ArrayBuffer) {
+  const cached = documentCache.get(data);
+  if (cached) return await cached;
+  const promise = loadPdfDocumentUncached(data);
+  documentCache.set(data, promise);
+  return await promise;
+}
+
+async function loadPdfDocumentUncached(data: ArrayBuffer) {
   try {
     const task = getDocument({ data: new Uint8Array(data) });
     return await task.promise;

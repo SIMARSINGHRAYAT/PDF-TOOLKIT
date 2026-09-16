@@ -181,7 +181,7 @@ export function CropTool() {
         <Link href="/dashboard" className="text-sm text-zinc-300 hover:text-white">← Back</Link>
       </div>
 
-      <PdfUpload onSelect={(incoming) => void onFile(incoming[0] ?? null)} label="Upload a PDF to crop" />
+      <PdfUpload onSelect={(incoming) => void onFile(incoming[0] ?? null)} onClear={() => void onFile(null)} label="Upload a PDF to crop" />
 
       {file && pageCount > 0 ? (
         <div className="rounded-2xl border border-white/20 bg-white/[0.04] p-4 backdrop-blur-sm sm:p-5">
@@ -196,7 +196,7 @@ export function CropTool() {
                 setPage(next);
                 await loadPreview(file, next);
               }}
-              disabled={page <= 1 || previewLoading}
+              disabled={page <= 1}
               className="px-3 py-1.5 disabled:opacity-40"
             >
               Previous page
@@ -212,7 +212,7 @@ export function CropTool() {
                 setPage(next);
                 await loadPreview(file, next);
               }}
-              disabled={page >= pageCount || previewLoading}
+              disabled={page >= pageCount}
               className="px-3 py-1.5 disabled:opacity-40"
             >
               Next page
@@ -226,7 +226,7 @@ export function CropTool() {
                   setCropMode(true);
                 }
               }}
-              disabled={processing || previewLoading}
+              disabled={processing}
               className="rounded-xl border border-white/50 bg-white/10 px-4 py-2 font-semibold text-white disabled:opacity-50"
             >
               {processing ? "Applying crop..." : rect ? "Apply Crop" : "Crop PDF"}

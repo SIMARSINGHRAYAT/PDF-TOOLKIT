@@ -77,9 +77,10 @@ export function SplitTool() {
 
     try {
       const buffer = await selected.arrayBuffer();
+      setPreviewData(buffer);
+      setPageCount(1);
       const total = await getPdfPageCount(buffer);
       setPageCount(total);
-      setPreviewData(buffer);
     } catch {
       setPreviewData(null);
       setError("Unable to read this PDF. The file may be corrupted.");
@@ -123,7 +124,7 @@ export function SplitTool() {
         <Link href="/dashboard" className="text-sm text-zinc-300 hover:text-white">← Back</Link>
       </div>
 
-      <PdfUpload onSelect={(incoming) => void onFile(incoming[0] ?? null)} label="Upload a PDF to split" />
+      <PdfUpload onSelect={(incoming) => void onFile(incoming[0] ?? null)} onClear={() => void onFile(null)} label="Upload a PDF to split" />
 
       {file ? (
         <div className="rounded-2xl border border-zinc-700 bg-zinc-950 p-4 sm:p-5">

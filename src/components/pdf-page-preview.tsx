@@ -47,8 +47,8 @@ export function PdfPagePreview({ data, pageCount, page, onPageChange, label = "P
         <span>Page {page} of {pageCount}</span>
       </div>
       <div className="flex min-h-[420px] items-center justify-center overflow-auto rounded-xl border border-white/15 bg-black/40 p-3">
-        {imageKey !== `${page}-${data?.byteLength ?? 0}` ? <p className="text-sm text-zinc-400">Rendering page preview...</p> : null}
-        {imageKey === `${page}-${data?.byteLength ?? 0}` && image ? <img src={image} alt={`${label}, page ${page}`} className="max-h-[72vh] w-auto max-w-full object-contain" /> : null}
+        {image ? <img src={image} alt={`${label}, page ${page}`} className="max-h-[72vh] w-auto max-w-full object-contain" /> : null}
+        {!image && imageKey !== `${page}-${data?.byteLength ?? 0}` ? <p className="text-sm text-zinc-400">Preparing page preview...</p> : null}
         {imageKey === `${page}-${data?.byteLength ?? 0}` && !image ? <p className="text-sm text-zinc-400">Preview unavailable for this page.</p> : null}
       </div>
       <div className="mt-3 flex items-center justify-between">

@@ -42,7 +42,7 @@ input,
 select,
 button,
 textarea {
-  @apply rounded-xl border border-zinc-700 bg-zinc-950 text-zinc-100 placeholder:text-zinc-500;
+  @apply rounded-xl border border-white/20 bg-white/[0.04] text-zinc-100 placeholder:text-zinc-500;
 }
 
 button {
