@@ -115,9 +115,14 @@ export function InsertPageTool() {
             <option value={0}>Before page 1</option>
             {Array.from({ length: destination.pageCount }, (_, index) => <option key={index + 1} value={index + 1}>After page {index + 1}{index + 1 === destination.pageCount ? " (at the end)" : ""}</option>)}
           </select>
-          <button type="button" onClick={() => void insertPage()} disabled={processing} className="rounded-xl border border-zinc-400 bg-zinc-900 px-5 py-3 text-base font-semibold text-white disabled:opacity-50">
-            {processing ? "Inserting page..." : `Insert source page ${sourcePage}`}
-          </button>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => void insertPage()} disabled={true} className="cursor-not-allowed rounded-xl border border-zinc-600 bg-zinc-800 px-5 py-3 text-base font-semibold text-zinc-400 opacity-70">
+              Insert source page {sourcePage}
+            </button>
+            <span className="rounded-full border border-amber-400/60 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-200">
+              Coming soon
+            </span>
+          </div>
         </div>
       ) : null}
 
