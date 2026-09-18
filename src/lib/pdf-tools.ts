@@ -132,6 +132,7 @@ export async function cropPdf(
   );
 
   for (const page of copiedPages) {
+    page.setMediaBox(crop.x, crop.y, crop.width, crop.height);
     page.setCropBox(crop.x, crop.y, crop.width, crop.height);
     output.addPage(page);
   }

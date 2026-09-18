@@ -54,7 +54,7 @@ export function SplitTool() {
   const [file, setFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"ranges" | "after" | "every">("ranges");
+  const [mode, setMode] = useState<"ranges" | "after" | "every" | "between">("ranges");
   const [ranges, setRanges] = useState("1-3, 4-7");
   const [splitAfter, setSplitAfter] = useState("3, 7");
   const [pageCount, setPageCount] = useState(0);
@@ -142,6 +142,13 @@ export function SplitTool() {
             <label className="inline-flex items-center gap-2">
               <input type="radio" checked={mode === "after"} onChange={() => setMode("after")} />
               Split after pages
+            </label>
+            <label className="inline-flex cursor-not-allowed items-center gap-2 opacity-50">
+              <input type="radio" checked={mode === "between"} onChange={() => setMode("between")} disabled />
+              Split in between pages
+              <span className="rounded-full border border-amber-400/60 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-200">
+                Coming soon
+              </span>
             </label>
             <label className="inline-flex items-center gap-2">
               <input type="radio" checked={mode === "every"} onChange={() => setMode("every")} />
